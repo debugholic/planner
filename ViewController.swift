@@ -7,6 +7,25 @@
 
 import UIKit
 
+class PlannerCell: SwipableTableViewCell {
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        tintColor = .purple
+
+        let button1 = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 50, height: 50)))
+        button1.backgroundColor = .red
+        button1.setImage(UIImage(systemName: "trash"), for: .normal)
+        button1.tintColor = .white
+        add(button: button1, to: .trailing)
+        
+        let button2 = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 50, height: 50)))
+        button2.backgroundColor = .yellow
+        button2.setImage(UIImage(systemName: "star"), for: .normal)
+        button2.tintColor = .black
+        add(button: button2, to: .leading)        
+    }
+}
+
 class ViewController: UIViewController {
     @IBOutlet weak var tableView: SwipableTableView! {
         didSet {
@@ -17,8 +36,6 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-    
-        // Do any additional setup after loading the view.
     }
 }
 
@@ -28,24 +45,7 @@ extension ViewController: UITableViewDelegate {
 
 extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! SwipableTableViewCell
-        
-        let button1 = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 50, height: 50)))
-        button1.backgroundColor = .red
-        cell.add(button: button1, to: .trailing)
-        
-        let button2 = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 50, height: 50)))
-        button2.backgroundColor = .blue
-        cell.add(button: button2, to: .trailing)
-        
-        let button3 = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 50, height: 50)))
-        button3.backgroundColor = .red
-        cell.add(button: button3, to: .leading)
-        
-        let button4 = UIButton(frame: CGRect(origin: .zero, size: CGSize(width: 50, height: 50)))
-        button4.backgroundColor = .blue
-        cell.add(button: button4, to: .leading)
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! PlannerCell
         return cell
     }
 

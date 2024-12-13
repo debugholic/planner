@@ -11,7 +11,7 @@ import UIKit
 
 
 open class SwipableTableView: UITableView {
-    var scrolledCell: SwipableTableViewCell?
+    private var scrolledCell: SwipableTableViewCell?
     
     open override func dequeueReusableCell(withIdentifier identifier: String) -> UITableViewCell? {
         if let cell = super.dequeueReusableCell(withIdentifier: identifier) as? SwipableTableViewCell {

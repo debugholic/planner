@@ -87,7 +87,6 @@ open class SwipableTableViewCell: UITableViewCell {
         scrollView.addSubview(contentView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         
-        contentView.backgroundColor = .green
         contentView.translatesAutoresizingMaskIntoConstraints = false
         
         scrollContentViewLeading = contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor)
@@ -107,6 +106,11 @@ open class SwipableTableViewCell: UITableViewCell {
         ])
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
+        
+        DispatchQueue.main.async {
+            self.scrollView.contentOffset.x = self.scrollContentViewLeading.constant
+            self.openSide = nil
+        }
     }
    
     open func add(button: UIButton, to: ButtonPosition) {
@@ -179,9 +183,7 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
     public func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         let trailing: CGFloat = scrollContentViewTrailing.constant
         let leading: CGFloat = scrollContentViewLeading.constant
-                
-        print(leading, targetContentOffset.pointee.x)
-        
+                        
         if targetContentOffset.pointee.x > leading {
             if velocity.x > 0 {
                 targetContentOffset.pointee = CGPoint(x: trailing + leading, y: 0)
@@ -192,7 +194,7 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
             } else if targetContentOffset.pointee.x > ((trailing + leading) / 2) {
                 if scrollView.contentOffset.x > targetContentOffset.pointee.x {
                     targetContentOffset.pointee = CGPoint(x: leading, y: 0)
-                    
+
                 } else {
                     targetContentOffset.pointee = CGPoint(x: trailing + leading, y: 0)
                 }
@@ -204,7 +206,7 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
         } else {
             if velocity.x > 0 {
                 targetContentOffset.pointee = CGPoint(x: leading, y: 0)
-                
+
             } else if velocity.x < 0 {
                 targetContentOffset.pointee = CGPoint(x: 0, y: 0)
 
@@ -219,6 +221,19 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
             } else {
                 targetContentOffset.pointee = CGPoint(x: 0, y: 0)
             }
+        }
+        
+        if targetContentOffset.pointee.x == leading {
+            openSide = nil
+        }
+        
+        if openSide == .leading && targetContentOffset.pointee.x > leading {
+            targetContentOffset.pointee = CGPoint(x: leading, y: 0)
+            openSide = nil
+            
+        } else if openSide == .trailing && targetContentOffset.pointee.x < leading {
+            targetContentOffset.pointee = CGPoint(x: leading, y: 0)
+            openSide = nil
         }
         scrollDelegate?.swipableTableViewCellScrollViewDidScroll(self, scrollView: scrollView)
     }
@@ -244,33 +259,51 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
         }
     }
     
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset.x == scrollContentViewLeading.constant {
+            openSide = nil
+        }
+    }
+    
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset.x == scrollContentViewLeading.constant {
+            openSide = nil
+        }
+    }
+    
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        var r: CGFloat
-        if scrollContentViewLeading.constant > 0 && scrollView.contentOffset.x < scrollContentViewLeading.constant {
-            r = 1 - (scrollView.contentOffset.x / scrollContentViewLeading.constant)
-            
-        } else if scrollView.contentOffset.x > scrollContentViewLeading.constant {
-            r = (scrollView.contentOffset.x - scrollContentViewLeading.constant) / scrollContentViewTrailing.constant
+        let leading = scrollContentViewLeading.constant
 
+        if openSide == .trailing && scrollView.contentOffset.x < leading {
+            scrollView.contentOffset.x = leading
+            
+        } else if openSide == .leading && scrollView.contentOffset.x > leading {
+            scrollView.contentOffset.x = leading
+        }
+                
+        if openSide == nil && scrollView.contentOffset.x < leading {
+            openSide = .leading
+            
+        } else if openSide == nil && scrollView.contentOffset.x > leading {
+            openSide = .trailing
+        }
+        
+        var r: CGFloat
+        if leading > 0 && scrollView.contentOffset.x < leading {
+            r = 1 - (scrollView.contentOffset.x / leading)
+            
+        } else if scrollView.contentOffset.x > leading {
+            r = (scrollView.contentOffset.x / leading) - 1
+            
         } else {
             r = 0
         }
         
         if r > 1 {
             r = 1
- 
+            
         } else if r < 0 {
             r = 0
-        }
-        
-        let leading = scrollContentViewLeading.constant
-        let trailing = scrollContentViewTrailing.constant
-        
-        if scrollView.contentOffset.x < leading {
-            scrollView.contentOffset.x = leading
-            
-        } else if scrollView.contentOffset.x > leading {
-            scrollView.contentOffset.x = leading
         }
         
         backgroundColor = tintColor.withAlphaComponent(r * 0.12)
