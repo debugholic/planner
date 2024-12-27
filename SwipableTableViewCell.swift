@@ -71,7 +71,33 @@ open class SwipableTableViewCell: UITableViewCell {
     var buttonLeading: NSLayoutConstraint?
 
     var buttonWidth: CGFloat = 48
-    var openSide: OpenSide?
+    var openSide: OpenSide? {
+        didSet {
+            switch openSide {
+            case .leading:
+                for i in 0..<trailingButtons.count {
+                    trailingButtons[i].isHidden = true
+                }
+                break
+                
+            case .trailing:
+                for i in 0..<leadingButtons.count {
+                    leadingButtons[i].isHidden = true
+                }
+                break
+                
+            case nil:
+                for i in 0..<leadingButtons.count {
+                    leadingButtons[i].isHidden = false
+                }
+
+                for i in 0..<trailingButtons.count {
+                    trailingButtons[i].isHidden = false
+                }
+                break
+            }
+        }
+    }
     
     enum OpenSide {
         case leading
@@ -224,16 +250,16 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
         }
         
         if targetContentOffset.pointee.x == leading {
-            openSide = nil
+//            openSide = nil
         }
         
         if openSide == .leading && targetContentOffset.pointee.x > leading {
             targetContentOffset.pointee = CGPoint(x: leading, y: 0)
-            openSide = nil
+//            openSide = nil
             
         } else if openSide == .trailing && targetContentOffset.pointee.x < leading {
             targetContentOffset.pointee = CGPoint(x: leading, y: 0)
-            openSide = nil
+//            openSide = nil
         }
         scrollDelegate?.swipableTableViewCellScrollViewDidScroll(self, scrollView: scrollView)
     }
@@ -273,14 +299,6 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let leading = scrollContentViewLeading.constant
-
-        if openSide == .trailing && scrollView.contentOffset.x < leading {
-            scrollView.contentOffset.x = leading
-            
-        } else if openSide == .leading && scrollView.contentOffset.x > leading {
-            scrollView.contentOffset.x = leading
-        }
-                
         if openSide == nil && scrollView.contentOffset.x < leading {
             openSide = .leading
             
@@ -305,7 +323,6 @@ extension SwipableTableViewCell: UIScrollViewDelegate {
         } else if r < 0 {
             r = 0
         }
-        
         backgroundColor = tintColor.withAlphaComponent(r * 0.12)
     }
 }
